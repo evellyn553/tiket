@@ -1,3 +1,4 @@
+"use client";
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -23,8 +24,33 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useState, useEffect } from "react" // Import useState and useEffect
 
 export default function OtakuFestHomepage() {
+  const [backendMessage, setBackendMessage] = useState<string>(""); // State untuk menyimpan pesan dari backend
+  const [isLoading, setIsLoading] = useState<boolean>(true); // State untuk melacak status loading
+  const [error, setError] = useState<string | null>(null); // State untuk menyimpan error
+
+  useEffect(() => {
+    // Fungsi async untuk mengambil data dari backend
+    async function fetchBackendMessage() {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/hello/`, { cache: 'no-store' });
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        setBackendMessage(data.message);
+      } catch (e: any) {
+        setError(e.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchBackendMessage(); // Panggil fungsi saat komponen di-mount
+  }, []); // Array dependensi kosong berarti efek ini hanya berjalan sekali (saat mount)
+
   const featuredEvents = [
     {
       id: 1,
@@ -192,6 +218,16 @@ export default function OtakuFestHomepage() {
                     <span className="text-pink-600 font-bold">Join thousands of otaku</span> in celebrating Japanese pop
                     culture! ✨
                   </p>
+                  {/* Tampilkan pesan dari backend di sini */}
+                  <div className="mt-4 p-3 bg-purple-50 rounded-lg text-purple-800 font-semibold border border-purple-200">
+                    {isLoading ? (
+                      <p>Loading message from backend...</p>
+                    ) : error ? (
+                      <p className="text-red-600">Error: {error}</p>
+                    ) : (
+                      <p>Backend says: <span className="text-purple-900">{backendMessage}</span></p>
+                    )}
+                  </div>
                 </div>
               </div>
 
